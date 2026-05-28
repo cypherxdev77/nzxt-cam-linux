@@ -1,8 +1,107 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
+import { invoke } from '@tauri-apps/api/core'
 import { useApp } from '../../context/AppContext'
 import { CircularGauge } from '../ui/CircularGauge'
 import { Card } from '../ui/Card'
 import { Dropdown } from '../ui/Dropdown'
+
+interface GpuFanStatus {
+  hwmonPath: string
+  rpm: number
+  duty: number
+  gpuTemp: number
+  controllable: boolean
+}
+
+type GpuProfileId = 'auto' | 'silent' | 'balanced' | 'performance' | 'turbo' | 'manual'
+
+const GPU_PROFILES: Record<Exclude<GpuProfileId,'auto'|'manual'>, { label: string; color: string; pts: FanPoint[] }> = {
+  silent:      { label: 'Silencieux',  color: '#4fc3f7', pts: [{ t: 30, s: 0 }, { t: 50, s: 20 }, { t: 60, s: 30 }, { t: 70, s: 45 }, { t: 80, s: 60 }, { t: 90, s: 80 }] },
+  balanced:    { label: 'Équilibré',   color: '#00e87a', pts: [{ t: 30, s: 20 }, { t: 50, s: 30 }, { t: 60, s: 45 }, { t: 70, s: 60 }, { t: 80, s: 80 }, { t: 90, s: 100 }] },
+  performance: { label: 'Performance', color: '#ffb347', pts: [{ t: 30, s: 35 }, { t: 50, s: 50 }, { t: 60, s: 65 }, { t: 70, s: 80 }, { t: 80, s: 95 }, { t: 90, s: 100 }] },
+  turbo:       { label: 'Turbo',       color: '#ff4757', pts: [{ t: 30, s: 60 }, { t: 50, s: 75 }, { t: 60, s: 85 }, { t: 70, s: 95 }, { t: 80, s: 100 }] },
+}
+
+function GpuFanSection({ accent }: { accent: string }) {
+  const [status, setStatus] = useState<GpuFanStatus | null>(null)
+  const [profile, setProfile] = useState<GpuProfileId>('auto')
+  const [manualPts, setManualPts] = useState<FanPoint[]>([
+    { t: 30, s: 20 }, { t: 50, s: 35 }, { t: 60, s: 50 }, { t: 70, s: 65 }, { t: 80, s: 85 }, { t: 90, s: 100 },
+  ])
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    invoke<GpuFanStatus | null>('get_gpu_fan_status').then(setStatus).catch(() => {})
+    const t = setInterval(() => {
+      invoke<GpuFanStatus | null>('get_gpu_fan_status').then(setStatus).catch(() => {})
+    }, 1500)
+    return () => clearInterval(t)
+  }, [])
+
+  const applyProfile = (p: GpuProfileId, pts?: FanPoint[]) => {
+    if (p === 'auto') {
+      invoke('set_gpu_fan_auto').then(() => setError(null)).catch(e => setError(String(e)))
+    } else {
+      const curve = p === 'manual' ? (pts ?? manualPts) : GPU_PROFILES[p as Exclude<GpuProfileId,'auto'|'manual'>].pts
+      invoke('set_gpu_fan_curve', { points: curve }).then(() => setError(null)).catch(e => setError(String(e)))
+    }
+  }
+
+  const handleProfileClick = (p: GpuProfileId) => { setProfile(p); applyProfile(p) }
+  const handleManualCurve = (pts: FanPoint[]) => { setManualPts(pts); applyProfile('manual', pts) }
+
+  const activePts = profile === 'manual' ? manualPts
+    : profile === 'auto' ? GPU_PROFILES.balanced.pts
+    : GPU_PROFILES[profile as Exclude<GpuProfileId,'auto'|'manual'>].pts
+
+  const curveColor = profile === 'auto' ? '#484848'
+    : profile === 'manual' ? accent
+    : GPU_PROFILES[profile as Exclude<GpuProfileId,'auto'|'manual'>].color
+
+  if (!status) return null
+
+  return (
+    <Card style={{ padding: '16px 20px', border: `1px solid #2a2020` }} glow={false} accent={accent}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#f0f0f0' }}>RX 6700 XT — Ventilateurs GPU</div>
+          <div style={{ fontSize: 10, color: '#383838', marginTop: 3 }}>Contrôle via hwmon · source temp GPU</div>
+          {error && <div style={{ fontSize: 10, color: '#ff4757', marginTop: 4 }}>{error}</div>}
+          {!status.controllable && !error && (
+            <div style={{ fontSize: 10, color: '#ff9800', marginTop: 4 }}>
+              Règle udev manquante — relance <code>install.sh</code> avec sudo puis redémarre
+            </div>
+          )}
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#f0f0f0' }}>{status.rpm} <span style={{ fontSize: 10, color: '#484848' }}>RPM</span></div>
+          <div style={{ fontSize: 10, color: '#484848', marginTop: 2 }}>{status.duty}% · {Math.round(status.gpuTemp)}°C</div>
+        </div>
+      </div>
+
+      {/* Profils */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        <ProfileButton id="auto" label="Auto" color="#484848" active={profile === 'auto'} onClick={() => handleProfileClick('auto')}/>
+        {(Object.entries(GPU_PROFILES) as [Exclude<GpuProfileId,'auto'|'manual'>, typeof GPU_PROFILES[keyof typeof GPU_PROFILES]][]).map(([id, p]) => (
+          <ProfileButton key={id} id={id} label={p.label} color={p.color} active={profile === id} onClick={() => handleProfileClick(id)}/>
+        ))}
+        <ProfileButton id="manual" label="Manuel" color={accent} active={profile === 'manual'} onClick={() => handleProfileClick('manual')}/>
+      </div>
+
+      {profile !== 'auto' && (
+        <FanCurveChart
+          tempSource="GPU"
+          currentTemp={status.gpuTemp}
+          accent={curveColor}
+          pts={activePts}
+          onChange={handleManualCurve}
+          editable={profile === 'manual'}
+        />
+      )}
+    </Card>
+  )
+}
+
 function TempCard({ label, value, tempUnit, accent }: { label: string; value: number; tempUnit: string; accent: string }) {
   const pct = Math.min(value / 100, 1) * 100
   const color = value > 75 ? '#ff4757' : value > 55 ? '#ffb347' : value > 40 ? accent : '#00e87a'
@@ -22,11 +121,53 @@ function TempCard({ label, value, tempUnit, accent }: { label: string; value: nu
   )
 }
 
+function PumpCard({ rpm, accent }: { rpm: number; accent: string }) {
+  const MAX_RPM = 3200
+  const pct = Math.min(rpm / MAX_RPM, 1) * 100
+  const color = pct > 85 ? '#ff4757' : pct > 65 ? '#ffb347' : accent
+  return (
+    <Card style={{ padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+      <div style={{ fontSize: 10, color: '#484848', textTransform: 'uppercase', letterSpacing: '0.9px', fontWeight: 700 }}>Pump</div>
+      <div style={{ position: 'relative', width: 90, height: 90 }}>
+        <CircularGauge value={pct} max={100} size={90} stroke={8} color={color}/>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 8 }}>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#f0f0f0', lineHeight: 1 }}>{rpm}</span>
+          <span style={{ fontSize: 9, color: '#484848', marginTop: 3 }}>RPM</span>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
 interface FanPoint { t: number; s: number }
 
-function FanCurveChart({ tempSource, currentTemp, accent }: { tempSource: string; currentTemp: number; accent: string }) {
-  const W = 520, H = 210
-  const PAD = { t: 14, r: 16, b: 38, l: 48 }
+type ProfileId = 'silent' | 'balanced' | 'performance' | 'turbo' | 'manual'
+
+const PROFILES: Record<Exclude<ProfileId, 'manual'>, { label: string; color: string; pts: FanPoint[] }> = {
+  silent:      { label: 'Silencieux',   color: '#4fc3f7', pts: [{ t: 20, s: 20 }, { t: 30, s: 22 }, { t: 40, s: 25 }, { t: 50, s: 32 }, { t: 60, s: 42 }, { t: 70, s: 55 }, { t: 80, s: 65 }] },
+  balanced:    { label: 'Équilibré',    color: '#00e87a', pts: [{ t: 20, s: 25 }, { t: 30, s: 26 }, { t: 40, s: 30 }, { t: 50, s: 47 }, { t: 60, s: 65 }, { t: 70, s: 80 }] },
+  performance: { label: 'Performance',  color: '#ffb347', pts: [{ t: 20, s: 35 }, { t: 30, s: 40 }, { t: 40, s: 50 }, { t: 50, s: 65 }, { t: 60, s: 80 }, { t: 70, s: 95 }, { t: 80, s: 100 }] },
+  turbo:       { label: 'Turbo',        color: '#ff4757', pts: [{ t: 20, s: 60 }, { t: 30, s: 70 }, { t: 40, s: 80 }, { t: 50, s: 90 }, { t: 60, s: 100 }] },
+}
+
+function ProfileButton({ label, color, active, onClick }: { id: string; label: string; color: string; active: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 700,
+      background: active ? color + '18' : 'transparent',
+      border: `1px solid ${active ? color + '66' : '#232323'}`,
+      color: active ? color : '#484848',
+      transition: 'all 160ms', letterSpacing: '0.2px',
+    }}>{label}</button>
+  )
+}
+
+function FanCurveChart({ tempSource, currentTemp, accent, pts, onChange, editable }: {
+  tempSource: string; currentTemp: number; accent: string
+  pts: FanPoint[]; onChange?: (pts: FanPoint[]) => void; editable: boolean
+}) {
+  const W = 2000, H = 300
+  const PAD = { t: 16, r: 20, b: 44, l: 56 }
   const PW = W - PAD.l - PAD.r, PH = H - PAD.t - PAD.b
 
   const tX = (t: number) => PAD.l + ((t - 10) / 90) * PW
@@ -34,10 +175,6 @@ function FanCurveChart({ tempSource, currentTemp, accent }: { tempSource: string
   const xT = (x: number) => Math.max(10, Math.min(100, 10 + ((x - PAD.l) / PW) * 90))
   const yS = (y: number) => Math.max(0, Math.min(100, (1 - (y - PAD.t) / PH) * 100))
 
-  const [pts, setPts] = useState<FanPoint[]>([
-    { t: 20, s: 25 }, { t: 30, s: 26 }, { t: 40, s: 30 }, { t: 50, s: 47 },
-    { t: 60, s: 65 }, { t: 70, s: 80 },
-  ])
   const [drag, setDrag] = useState<number | null>(null)
   const [hov, setHov] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -64,62 +201,63 @@ function FanCurveChart({ tempSource, currentTemp, accent }: { tempSource: string
   const getSVGPos = (e: React.MouseEvent) => {
     const rect = svgRef.current?.getBoundingClientRect()
     if (!rect) return { x: 0, y: 0 }
-    const sx = W / rect.width, sy = H / rect.height
-    return { x: (e.clientX - rect.left) * sx, y: (e.clientY - rect.top) * sy }
+    return { x: (e.clientX - rect.left) * (W / rect.width), y: (e.clientY - rect.top) * (H / rect.height) }
   }
 
   const onMouseMove = (e: React.MouseEvent) => {
-    if (drag === null) return
+    if (drag === null || !editable || !onChange) return
     const { x, y } = getSVGPos(e)
-    setPts(prev => {
-      const next = [...prev]
-      next[drag] = { t: Math.round(xT(x)), s: Math.round(yS(y)) }
-      return next.sort((a, b) => a.t - b.t)
-    })
+    const next = [...pts]
+    next[drag] = { t: Math.round(xT(x)), s: Math.round(yS(y)) }
+    onChange(next.sort((a, b) => a.t - b.t))
   }
 
+  const curveColor = editable ? accent : '#00e87a'
   const TICKS_T = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
   const TICKS_S = [0, 25, 50, 75, 100]
   const curX = tX(currentTemp)
 
   return (
     <div style={{ userSelect: 'none' }}>
-      <div style={{ fontSize: 11, color: '#888', marginBottom: 6, fontFamily: 'JetBrains Mono, monospace' }}>
-        {tempSource}: <span style={{ color: '#00e87a' }}>{Math.round(currentTemp)}°</span>
-        <span style={{ color: '#2a2a2a', marginLeft: 10, fontSize: 10 }}>(visualisation — pas de contrôle ventilateur disponible)</span>
+      <div style={{ fontSize: 11, color: '#555', marginBottom: 6, fontFamily: 'JetBrains Mono, monospace' }}>
+        {tempSource}: <span style={{ color: curveColor }}>{Math.round(currentTemp)}°</span>
+        {!editable && <span style={{ color: '#2a2a2a', marginLeft: 10, fontSize: 10 }}>(lecture seule — profil prédéfini)</span>}
+        {editable && <span style={{ color: '#2a2a2a', marginLeft: 10, fontSize: 10 }}>glissez les points pour modifier</span>}
       </div>
-      <svg ref={svgRef} width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', cursor: drag !== null ? 'grabbing' : 'default' }}
+      <svg ref={svgRef} width="100%" viewBox={`0 0 ${W} ${H}`}
+        style={{ overflow: 'visible', cursor: drag !== null ? 'grabbing' : 'default' }}
         onMouseMove={onMouseMove} onMouseUp={() => setDrag(null)} onMouseLeave={() => setDrag(null)}>
         <defs>
           <linearGradient id="fccGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#00e87a" stopOpacity="0.14"/>
-            <stop offset="100%" stopColor="#00e87a" stopOpacity="0.01"/>
+            <stop offset="0%" stopColor={curveColor} stopOpacity="0.14"/>
+            <stop offset="100%" stopColor={curveColor} stopOpacity="0.01"/>
           </linearGradient>
           <clipPath id="fccClip"><rect x={PAD.l} y={PAD.t} width={PW} height={PH}/></clipPath>
         </defs>
         {TICKS_S.map(s => (
           <g key={s}>
-            <line x1={PAD.l} y1={sY(s)} x2={PAD.l + PW} y2={sY(s)} stroke="#1a1a1a" strokeWidth="1"/>
-            <text x={PAD.l - 6} y={sY(s)} textAnchor="end" dominantBaseline="middle" fill="#404040" fontSize="9" fontFamily="JetBrains Mono, monospace">{s}%</text>
+            <line x1={PAD.l} y1={sY(s)} x2={PAD.l + PW} y2={sY(s)} stroke="#1a1a1a" strokeWidth="1.5"/>
+            <text x={PAD.l - 8} y={sY(s)} textAnchor="end" dominantBaseline="middle" fill="#404040" fontSize="11" fontFamily="JetBrains Mono, monospace">{s}%</text>
           </g>
         ))}
         {TICKS_T.map(t => (
           <g key={t}>
-            <line x1={tX(t)} y1={PAD.t} x2={tX(t)} y2={PAD.t + PH} stroke="#181818" strokeWidth="1"/>
-            <text x={tX(t)} y={PAD.t + PH + 18} textAnchor="middle" fill="#404040" fontSize="9" fontFamily="JetBrains Mono, monospace">{t}°</text>
+            <line x1={tX(t)} y1={PAD.t} x2={tX(t)} y2={PAD.t + PH} stroke="#181818" strokeWidth="1.5"/>
+            <text x={tX(t)} y={PAD.t + PH + 20} textAnchor="middle" fill="#404040" fontSize="11" fontFamily="JetBrains Mono, monospace">{t}°</text>
           </g>
         ))}
         <path d={areaPath()} fill="url(#fccGrad)" clipPath="url(#fccClip)"/>
-        <path d={curvePath()} fill="none" stroke="#00e87a" strokeWidth="2" strokeLinecap="round" clipPath="url(#fccClip)"
-          style={{ filter: 'drop-shadow(0 0 4px rgba(0,232,122,0.5))' }}/>
-        <line x1={curX} y1={PAD.t} x2={curX} y2={PAD.t + PH} stroke={accent} strokeWidth="1" strokeDasharray="3,3" opacity="0.55"/>
-        <text x={curX + 4} y={PAD.t + 4} fill={accent} fontSize="8" fontFamily="JetBrains Mono, monospace" opacity="0.7">{Math.round(currentTemp)}°</text>
+        <path d={curvePath()} fill="none" stroke={curveColor} strokeWidth="2" strokeLinecap="round" clipPath="url(#fccClip)"
+          style={{ filter: `drop-shadow(0 0 4px ${curveColor}66)` }}/>
+        <line x1={curX} y1={PAD.t} x2={curX} y2={PAD.t + PH} stroke={accent} strokeWidth="1.5" strokeDasharray="5,4" opacity="0.55"/>
+        <text x={curX + 6} y={PAD.t + 14} fill={accent} fontSize="11" fontFamily="JetBrains Mono, monospace" opacity="0.7">{Math.round(currentTemp)}°</text>
         {pts.map((p, i) => {
           const sx = tX(p.t), sy = sY(p.s), active = hov === i || drag === i
           return (
-            <circle key={i} cx={sx} cy={sy} r={active ? 7 : 5.5} fill="#00e87a" stroke={active ? '#fff' : '#00e87a'} strokeWidth={active ? 1.5 : 0}
-              style={{ cursor: 'grab', filter: active ? 'drop-shadow(0 0 7px rgba(0,232,122,0.9))' : 'none', transition: 'r 100ms' }}
-              onMouseDown={e => { e.preventDefault(); setDrag(i) }}
+            <circle key={i} cx={sx} cy={sy} r={active ? 6 : 4} fill={curveColor}
+              stroke={active ? '#fff' : curveColor} strokeWidth={active ? 1.5 : 0}
+              style={{ cursor: editable ? 'grab' : 'default', filter: active ? `drop-shadow(0 0 6px ${curveColor}cc)` : 'none', transition: 'r 100ms' }}
+              onMouseDown={e => { if (!editable) return; e.preventDefault(); setDrag(i) }}
               onMouseEnter={() => setHov(i)}
               onMouseLeave={() => { if (drag === null) setHov(null) }}
             />
@@ -133,55 +271,103 @@ function FanCurveChart({ tempSource, currentTemp, accent }: { tempSource: string
 export function CoolingScreen() {
   const { state } = useApp()
   const { temperatures, tempUnit, accent, deviceStatus } = state
+  const [profile, setProfile] = useState<ProfileId>('balanced')
   const [tempSource, setTempSource] = useState('Liquid')
+  const [manualPts, setManualPts] = useState<FanPoint[]>([
+    { t: 20, s: 25 }, { t: 30, s: 26 }, { t: 40, s: 30 }, { t: 50, s: 47 }, { t: 60, s: 65 }, { t: 70, s: 80 },
+  ])
 
-  const currentTemp = tempSource === 'CPU' ? temperatures.cpu : tempSource === 'GPU' ? temperatures.gpu : temperatures.liquid
+  const currentTemp = tempSource === 'CPU' ? temperatures.cpu : temperatures.liquid
+  const activePts = profile === 'manual' ? manualPts : PROFILES[profile as Exclude<ProfileId, 'manual'>].pts
+
+  const applyProfile = (pts: FanPoint[]) => {
+    invoke('set_pump_profile', { points: pts }).catch(console.error)
+  }
+
+  useEffect(() => {
+    applyProfile(activePts)
+  }, [profile])
+
+  const handleManualChange = (pts: FanPoint[]) => {
+    setManualPts(pts)
+    applyProfile(pts)
+  }
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px' }}>Cooling</div>
-      </div>
+      <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px' }}>Cooling</div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         <TempCard label="CPU"    value={temperatures.cpu}    tempUnit={tempUnit} accent={accent}/>
         <TempCard label="GPU"    value={temperatures.gpu}    tempUnit={tempUnit} accent={accent}/>
         <TempCard label="Liquid" value={temperatures.liquid} tempUnit={tempUnit} accent={accent}/>
-        <TempCard label="Pump"   value={Math.min(100, (temperatures.pumpRpm / 3000) * 100)} tempUnit={tempUnit} accent={accent}/>
+        <PumpCard rpm={temperatures.pumpRpm} accent={accent}/>
       </div>
 
-      <Card style={{ padding: '16px 20px', border: `1px solid ${accent}55`, boxShadow: `0 0 24px ${accent}12` }} glow={false} accent={accent}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: '#f0f0f0', letterSpacing: '-0.2px' }}>
-            {deviceStatus.connected ? deviceStatus.productName : 'Kraken Elite V2'}
+      {/* Watercooling Kraken */}
+      <Card style={{ padding: '16px 20px', border: `1px solid ${accent}44`, boxShadow: `0 0 24px ${accent}10` }} glow={false} accent={accent}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#f0f0f0' }}>
+              {deviceStatus.connected ? deviceStatus.productName : 'Kraken Elite V2'} — Pompe
+            </div>
+            <div style={{ fontSize: 10, color: '#383838', marginTop: 3 }}>Watercooling · contrôle CPU &amp; liquide</div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#f0f0f0' }}>{temperatures.pumpRpm}</span>
+            <span style={{ fontSize: 10, color: '#484848' }}>RPM</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderBottom: '1px solid #1c1c1c' }}>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#111', border: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#555" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="6"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+        {/* Sélecteur de profil */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          {(Object.entries(PROFILES) as [Exclude<ProfileId,'manual'>, typeof PROFILES[keyof typeof PROFILES]][]).map(([id, p]) => (
+            <ProfileButton key={id} id={id} label={p.label} color={p.color} active={profile === id} onClick={() => setProfile(id)}/>
+          ))}
+          <ProfileButton id="manual" label="Manuel" color={accent} active={profile === 'manual'} onClick={() => setProfile('manual')}/>
+        </div>
+
+        {/* Source de température (liquid ou CPU uniquement, pas GPU) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <span style={{ fontSize: 11, color: '#484848' }}>Source</span>
+          <Dropdown value={tempSource} options={['Liquid', 'CPU']} onChange={setTempSource} width={100} small accent={accent}/>
+          {profile !== 'manual' && (
+            <span style={{ fontSize: 10, color: '#2e2e2e', marginLeft: 4 }}>Passer en mode Manuel pour éditer la courbe</span>
+          )}
+        </div>
+
+        <FanCurveChart
+          tempSource={tempSource}
+          currentTemp={currentTemp}
+          accent={profile === 'manual' ? accent : PROFILES[profile as Exclude<ProfileId,'manual'>].color}
+          pts={activePts}
+          onChange={handleManualChange}
+          editable={profile === 'manual'}
+        />
+      </Card>
+
+      <GpuFanSection accent={accent}/>
+
+      {/* GPU — info séparée */}
+      <Card style={{ padding: '14px 20px' }} glow={false} accent={accent}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 8, background: '#111', border: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#484848" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
             </svg>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#e8e8e8' }}>Pump</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#686868' }}>GPU — Ventilateurs indépendants</div>
+            <div style={{ fontSize: 10, color: '#303030', marginTop: 3 }}>
+              Le GPU possède ses propres ventilateurs gérés directement par le pilote graphique. Ils ne font pas partie du circuit watercooling Kraken et ne peuvent pas être contrôlés ici.
+            </div>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#f0f0f0' }}>{temperatures.pumpRpm}</span>
-            <span style={{ fontSize: 10, color: '#555', marginLeft: 3 }}>RPM</span>
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#555' }}>
+              {tempUnit === '°F' ? Math.round(temperatures.gpu * 9/5 + 32) : Math.round(temperatures.gpu)}
+              <span style={{ fontSize: 10, color: '#383838', marginLeft: 3 }}>{tempUnit === '°F' ? '°F' : '°C'}</span>
+            </div>
           </div>
-          <div style={{ background: '#1c1c1c', border: '1px solid #2c2c2c', borderRadius: 20, padding: '4px 10px', fontSize: 11, color: '#888', display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: accent }}/>
-            Liquid
-          </div>
-        </div>
-
-        <div style={{ marginTop: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <span style={{ fontSize: 11, color: '#555' }}>Source de température</span>
-            <Dropdown value={tempSource} options={['Liquid', 'CPU', 'GPU']} onChange={setTempSource} width={110} small accent={accent}/>
-          </div>
-          <FanCurveChart tempSource={tempSource} currentTemp={currentTemp} accent={accent}/>
         </div>
       </Card>
     </div>

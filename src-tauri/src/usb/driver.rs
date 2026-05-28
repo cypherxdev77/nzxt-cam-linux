@@ -231,6 +231,34 @@ impl KrakenDriver {
         self.0.temp_gen.fetch_add(1, Ordering::Release);
     }
 
+    /// Send pump speed profile to the Kraken firmware.
+    /// `points` is a list of (temp_celsius, duty_percent) pairs from the UI curve.
+    /// The firmware expects 40 duty values for temps 20°C..=59°C interpolated linearly.
+    pub async fn set_pump_speed_profile(&self, points: Vec<(u8, u8)>) -> Result<()> {
+        let mut hw_guard = self.0.hw.lock().await;
+        let hw = hw_guard.as_mut().ok_or_else(|| anyhow!("Non connecté"))?;
+
+        // Interpolate duty for each integer temp 20..=59 (40 values).
+        let mut duties = [20u8; 40];
+        for (i, temp) in (20u8..=59u8).enumerate() {
+            duties[i] = interp_duty(&points, temp).clamp(20, 100);
+        }
+
+        // Packet: [0x72, 0x01, 0x00, 0x00, d0..d39] padded to 64 bytes.
+        let mut pkt = vec![0u8; 64];
+        pkt[0] = 0x72;
+        pkt[1] = 0x01;
+        pkt[2] = 0x00;
+        pkt[3] = 0x00;
+        pkt[4..44].copy_from_slice(&duties);
+
+        hw.intr_out.submit(Buffer::from(pkt));
+        let comp = hw.intr_out.next_complete().await;
+        comp.status.map_err(|e| anyhow!("pump profile write failed: {e:?}"))?;
+        log::info!("Pump speed profile envoyé ({} points)", points.len());
+        Ok(())
+    }
+
     // ========================================================================
     // Public actions
     // ========================================================================
@@ -448,7 +476,7 @@ fn parse_device_status(data: &[u8]) {
         return;
     }
     let liquid = data[15] as f64 + data[16] as f64 / 10.0;
-    let pump = u16::from_be_bytes([data[17], data[18]]) as f64;
+    let pump = u16::from_le_bytes([data[17], data[18]]) as f64;
     // Sanity-check: liquid must be in a plausible range (1–59 °C)
     if liquid >= 1.0 && liquid <= 59.0 {
         crate::sensors::update_device_temps(liquid, pump);
@@ -936,4 +964,21 @@ fn build_ring_cmd(channel: crate::types::RingChannel, mode: crate::types::RingMo
     cmd.extend_from_slice(&[backward, color_count, mode_rel, static_val, led_size]);
 
     cmd
+}
+
+/// Linear interpolation of duty% for a given temperature, from a sorted list of (temp, duty) pairs.
+fn interp_duty(points: &[(u8, u8)], temp: u8) -> u8 {
+    if points.is_empty() { return 20; }
+    if temp <= points[0].0 { return points[0].1; }
+    if temp >= points[points.len() - 1].0 { return points[points.len() - 1].1; }
+    for i in 0..points.len() - 1 {
+        let (t0, s0) = points[i];
+        let (t1, s1) = points[i + 1];
+        if temp >= t0 && temp <= t1 {
+            if t1 == t0 { return s0; }
+            let ratio = (temp - t0) as f32 / (t1 - t0) as f32;
+            return (s0 as f32 + ratio * (s1 as f32 - s0 as f32)).round() as u8;
+        }
+    }
+    points[points.len() - 1].1
 }

@@ -2,6 +2,7 @@
 
 pub mod commands;
 pub mod config;
+pub mod fans;
 pub mod image_io;
 pub mod profile;
 pub mod render;
@@ -43,6 +44,7 @@ pub fn run() {
 
     let state = AppState {
         driver: driver.clone(),
+        gpu_fan: crate::fans::GpuFanController::new(),
         temp_poll_shutdown: Mutex::new(None),
     };
 
@@ -159,6 +161,14 @@ pub fn run() {
             commands::open_external,
             commands::get_config,
             commands::save_config,
+            commands::set_pump_profile,
+            commands::get_gpu_fan_status,
+            commands::set_gpu_fan_curve,
+            commands::set_gpu_fan_auto,
+            commands::list_fan_channels,
+            commands::read_fan_channels,
+            commands::set_fan_duty_cmd,
+            commands::set_fan_auto_cmd,
             commands::send_ring,
             commands::list_profiles,
             commands::save_profile_cmd,

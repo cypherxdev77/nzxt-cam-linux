@@ -4,3 +4,17 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="1e71", ATTR{idProduct}=="300c", MODE="0666", 
 SUBSYSTEM=="usb", ATTR{idVendor}=="1e71", ATTR{idProduct}=="300e", MODE="0666", GROUP="plugdev"
 SUBSYSTEM=="usb", ATTR{idVendor}=="1e71", ATTR{idProduct}=="3012", MODE="0666", GROUP="plugdev"
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1e71", MODE="0666", GROUP="plugdev"
+
+# Fan control via hwmon sysfs — GPU AMD (cible amdgpu)
+KERNEL=="hwmon[0-9]*", SUBSYSTEM=="hwmon", ATTR{name}=="amdgpu", \
+  RUN+="/bin/sh -c 'for f in /sys%p/pwm[0-9]* /sys%p/pwm[0-9]*_enable /sys%p/fan[0-9]*_target; do [ -f \"$f\" ] && chmod a+rw \"$f\"; done; exit 0'"
+
+# Fan control via hwmon sysfs — Ventilateurs boitier (it87, nct6775/76/79)
+KERNEL=="hwmon[0-9]*", SUBSYSTEM=="hwmon", ATTR{name}=="it87", \
+  RUN+="/bin/sh -c 'for f in /sys%p/pwm[0-9]* /sys%p/pwm[0-9]*_enable; do [ -f \"$f\" ] && chmod a+rw \"$f\"; done; exit 0'"
+KERNEL=="hwmon[0-9]*", SUBSYSTEM=="hwmon", ATTR{name}=="nct6775", \
+  RUN+="/bin/sh -c 'for f in /sys%p/pwm[0-9]* /sys%p/pwm[0-9]*_enable; do [ -f \"$f\" ] && chmod a+rw \"$f\"; done; exit 0'"
+KERNEL=="hwmon[0-9]*", SUBSYSTEM=="hwmon", ATTR{name}=="nct6776", \
+  RUN+="/bin/sh -c 'for f in /sys%p/pwm[0-9]* /sys%p/pwm[0-9]*_enable; do [ -f \"$f\" ] && chmod a+rw \"$f\"; done; exit 0'"
+KERNEL=="hwmon[0-9]*", SUBSYSTEM=="hwmon", ATTR{name}=="nct6779", \
+  RUN+="/bin/sh -c 'for f in /sys%p/pwm[0-9]* /sys%p/pwm[0-9]*_enable; do [ -f \"$f\" ] && chmod a+rw \"$f\"; done; exit 0'"
