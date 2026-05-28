@@ -1,4 +1,4 @@
-# nzxtcam-v1
+# nzxt-cam-linux
 
 Contrôleur LCD & RGB pour le **NZXT Kraken Elite V2** sous Linux.
 Alternative native à NZXT CAM (Windows) — construit avec Tauri 2 + Rust.
@@ -34,7 +34,7 @@ cd nzxt-cam-linux
 Le script compile le binaire (~1-2 min), installe l'app dans `~/.local/bin/`,
 ajoute l'entrée dans ton dashboard et configure l'accès USB sans sudo.
 
-Lance ensuite depuis ton dashboard en cherchant **nzxtcam-v1**, ou via :
+Lance ensuite depuis ton dashboard en cherchant **nzxt-cam-linux**, ou via :
 
 ```bash
 nzxtcam-v1
@@ -60,7 +60,7 @@ Pour demander le support d'un autre modèle, ouvre une issue ou utilise le bouto
 ## Structure
 
 ```
-nzxtcam-archlinux-rust/
+nzxt-cam-linux/
 ├── src/                       # Frontend React + TypeScript
 │   ├── App.tsx                # Layout principal
 │   ├── components/            # Composants UI
@@ -86,7 +86,7 @@ nzxtcam-archlinux-rust/
         │   ├── cpu.rs         # /sys/class/hwmon — k10temp, coretemp...
         │   └── gpu.rs         # /sys/class/hwmon — amdgpu, nvidia, i915
         ├── image_io.rs        # image + gif crates (resize, RGBA)
-        ├── config.rs          # Persistance ~/.config/nzxtcam-archlinux-rust/
+        ├── config.rs          # Persistance ~/.config/nzxt-cam-linux/
         └── types.rs           # Types partagés (serde rename_all=camelCase)
 ```
 
