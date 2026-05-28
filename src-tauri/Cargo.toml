@@ -1,0 +1,71 @@
+[package]
+name = "nzxtcam-archlinux-rust"
+version = "0.1.0"
+description = "NZXT Kraken Elite LCD controller for Arch Linux — Tauri + Rust"
+authors = ["Cypher"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "nzxtcam_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset", "tray-icon", "image-png"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-fs = "2"
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# USB — async pure Rust, talks directly to the kernel (no libusb dependency)
+nusb = { version = "0.2", features = ["tokio"] }
+
+# 2D rasterizer — pure Rust, no system deps
+tiny-skia = "0.12"
+# TTF glyph rasterization
+ab_glyph = "0.2"
+
+# Image decode/encode + GIF (replaces Jimp + Python subprocess)
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "bmp", "webp", "gif"] }
+gif = "0.14"
+
+# Async runtime (Tauri uses tokio internally)
+tokio = { version = "1", features = ["sync", "time", "rt-multi-thread", "macros"] }
+futures-lite = "2"
+
+# Utilities
+base64 = "0.22"
+once_cell = "1"
+anyhow = "1"
+thiserror = "1"
+parking_lot = "0.12"
+log = "0.4"
+env_logger = "0.11"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+dirs = "6"
+
+[features]
+# Default features
+default = ["custom-protocol"]
+# Bundle the protocol customization (production vs. dev)
+custom-protocol = ["tauri/custom-protocol"]
+
+# Dev mode: our code at -O1 (5-10x faster than -O0), deps at -O2 (near-release
+# speed for image/gif/tiny-skia without destroying incremental compile times).
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
