@@ -139,12 +139,12 @@ export function MonitoringScreen() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-        <TempCard id="cpu" title="CPU" sub="Température processeur" value={temperatures.cpu} max={100} tempUnit={tempUnit} hist={cpuH}/>
-        <TempCard id="gpu" title="GPU" sub="Température carte graphique" value={temperatures.gpu} max={100} tempUnit={tempUnit} hist={gpuH}/>
+        <TempCard id="cpu" title="CPU" sub="CPU temperature" value={temperatures.cpu} max={100} tempUnit={tempUnit} hist={cpuH}/>
+        <TempCard id="gpu" title="GPU" sub="GPU temperature" value={temperatures.gpu} max={100} tempUnit={tempUnit} hist={gpuH}/>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
-        <TempCard id="liq" title="Liquide" sub="Température liquide de refroidissement" value={temperatures.liquid} max={60} tempUnit={tempUnit} hist={liqH}/>
+        <TempCard id="liq" title="Liquide" sub="Liquid coolant temperature" value={temperatures.liquid} max={60} tempUnit={tempUnit} hist={liqH}/>
         <PumpCard rpm={temperatures.pumpRpm} hist={pumpH}/>
         <StorageCard/>
       </div>

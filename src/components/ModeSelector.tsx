@@ -5,7 +5,7 @@ type Mode = 'image' | 'gif' | 'temperatures'
 const modes: { id: Mode; label: string; icon: string }[] = [
   { id: 'image', label: 'Image', icon: '🖼️' },
   { id: 'gif', label: 'GIF', icon: '🎬' },
-  { id: 'temperatures', label: 'Températures', icon: '🌡️' }
+  { id: 'temperatures', label: 'Temperatures', icon: '🌡️' }
 ]
 
 export function ModeSelector() {

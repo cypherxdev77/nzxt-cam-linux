@@ -1,6 +1,6 @@
 {
   "name": "nzxtcam-archlinux-rust",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "NZXT Kraken Elite LCD controller for Arch Linux — Tauri + Rust",
   "type": "module",
   "scripts": {

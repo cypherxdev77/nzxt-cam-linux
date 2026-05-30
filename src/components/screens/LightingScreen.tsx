@@ -24,15 +24,15 @@ const RING_MODES = [
 ]
 
 const SPEEDS: { id: RingSpeed; label: string }[] = [
-  { id: 'slowest', label: 'Très lent' }, { id: 'slower', label: 'Lent' },
-  { id: 'normal',  label: 'Normal'    }, { id: 'faster', label: 'Rapide' },
-  { id: 'fastest', label: 'Max'       },
+  { id: 'slowest', label: 'Slowest' }, { id: 'slower', label: 'Slow' },
+  { id: 'normal',  label: 'Normal'   }, { id: 'faster', label: 'Fast'  },
+  { id: 'fastest', label: 'Max'      },
 ]
 
 const CHANNELS: { id: RingChannel; label: string; hint: string }[] = [
   { id: 'ch01', label: 'Ring AIO',     hint: 'Ring autour du LCD' },
-  { id: 'ch02', label: 'Ventilateurs', hint: 'Fans / accessoires' },
-  { id: 'ch07', label: 'Tout',         hint: 'Tous les canaux'    },
+  { id: 'ch02', label: 'Fans',         hint: 'Fans / accessories'  },
+  { id: 'ch07', label: 'All',          hint: 'All channels'       },
 ]
 
 const SWATCHES = ['#9d4edd', '#00e87a', '#ff4757', '#ffb347', '#00bcd4', '#ff6b9d', '#ffffff', '#00d4ff']
@@ -253,7 +253,7 @@ export function LightingScreen() {
               {state.deviceStatus.connected ? state.deviceStatus.productName : 'Kraken Elite V2'}
             </div>
             <div style={{ fontSize: 10, color: state.deviceStatus.connected ? '#00e87a' : '#484848', marginTop: 2 }}>
-              {state.deviceStatus.connected ? 'Connecté' : 'Non connecté'}
+              {state.deviceStatus.connected ? 'Connected' : 'Not connected'}
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

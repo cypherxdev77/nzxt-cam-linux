@@ -58,7 +58,7 @@ export function MediaUploader() {
         <span style={{ color: accent, opacity: 0.7 }}><IThermo/></span>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: accent, marginBottom: 4 }}>
-            {state.isLoading ? 'Démarrage…' : 'Démarrer le mode Températures'}
+            {state.isLoading ? 'Starting…' : 'Start Temperature mode'}
           </div>
           <div style={{ fontSize: 11, color: '#484848' }}>Affiche CPU, GPU et liquide sur le LCD</div>
         </div>

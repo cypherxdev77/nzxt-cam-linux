@@ -72,7 +72,7 @@ const IThermo = () => (
 const MODES = [
   { id: 'image',        label: 'Image',        Icon: IImage  },
   { id: 'gif',          label: 'GIF',           Icon: IGif    },
-  { id: 'temperatures', label: 'Températures',  Icon: IThermo },
+  { id: 'temperatures', label: 'Temperatures',  Icon: IThermo },
 ] as const
 
 export function LCDScreen() {
@@ -164,7 +164,7 @@ export function LCDScreen() {
                 transition: 'all 140ms',
               }}>
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                {applying ? 'Envoi…' : applied ? 'Appliqué sur le LCD' : 'Appliquer sur le LCD'}
+                {applying ? 'Sending…' : applied ? 'Applied to LCD' : 'Apply to LCD'}
               </button>
               {applied && <span style={{ fontSize: 11, color: '#00e87a' }}>✓</span>}
               {!deviceStatus.connected && <span style={{ fontSize: 11, color: '#ffb347' }}>Device non connecté</span>}
@@ -186,7 +186,7 @@ export function LCDScreen() {
               { label: 'Resolution', val: '480 × 480' },
               { label: 'Interface',  val: 'USB Direct' },
               { label: 'Brightness', val: '100%' },
-              { label: 'Status',     val: deviceStatus.connected ? deviceStatus.productName : 'Non connecté' },
+              { label: 'Status',     val: deviceStatus.connected ? deviceStatus.productName : 'Not connected' },
             ].map(({ label, val }) => (
               <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 9, alignItems: 'center' }}>
                 <span style={{ fontSize: 11, color: '#484848' }}>{label}</span>

@@ -31,7 +31,7 @@ export function AppHeader() {
             boxShadow: deviceStatus.connected ? `0 0 6px ${accent}` : 'none',
           }}/>
           <span style={{ fontSize: 11, color: deviceStatus.connected ? '#c0c0c0' : '#3a3a3a', fontWeight: 600 }}>
-            {deviceStatus.connected ? deviceStatus.productName : 'Non connecté'}
+            {deviceStatus.connected ? deviceStatus.productName : 'Not connected'}
           </span>
         </div>
       </div>

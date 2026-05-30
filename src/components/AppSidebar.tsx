@@ -112,7 +112,7 @@ export function AppSidebar() {
             {/* Collapse button */}
             <div
               onClick={() => setOpen(false)}
-              title="Réduire le menu"
+              title="Collapse menu"
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '7px 11px', borderRadius: 7, cursor: 'pointer',
@@ -123,7 +123,7 @@ export function AppSidebar() {
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.color = '#2e2e2e'; (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
             >
               <IChevronLeft/>
-              <span>Réduire</span>
+              <span>Collapse</span>
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export function AppSidebar() {
       {/* Floating re-open tab — visible only when sidebar is closed */}
       <div
         onClick={() => setOpen(true)}
-        title="Ouvrir le menu"
+        title="Expand menu"
         style={{
           position: 'absolute', left: 0, top: '50%',
           transform: `translateY(-50%) translateX(${open ? '-100%' : '0%'})`,

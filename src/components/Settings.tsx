@@ -130,11 +130,11 @@ export function Settings() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
 
       {/* Cadence */}
-      <SectionHeader icon={<IClock/>} title="Cadence & précision" description="Contrôle la fréquence de lecture des capteurs et de rafraîchissement du LCD."/>
+      <SectionHeader icon={<IClock/>} title="Polling & precision" description="Controls the sensor read frequency and LCD refresh rate."/>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <NumField label="Lecture capteurs (ms)" help="Intervalle entre 2 lectures CPU/GPU." value={settings?.pollIntervalMs ?? 1000} min={100} max={60000} step={50} accent={accent} onChange={v => update({ pollIntervalMs: v })}/>
-        <NumField label="Re-rendu LCD (ms)" help="Fréquence de rendu de la scène. Le push USB ne se fait que si l'image change." value={settings?.lcdPollMs ?? 500} min={50} max={60000} step={50} accent={accent} onChange={v => update({ lcdPollMs: v })}/>
-        <NumField label="Cooldown push LCD (ms)" help="Délai minimum entre 2 envois USB. 0 = aucun." value={settings?.lcdMinPushMs ?? 200} min={0} max={10000} step={50} accent={accent} onChange={v => update({ lcdMinPushMs: v })}/>
+        <NumField label="LCD render (ms)" help="Scene render frequency. USB push only happens when the image changes." value={settings?.lcdPollMs ?? 500} min={50} max={60000} step={50} accent={accent} onChange={v => update({ lcdPollMs: v })}/>
+        <NumField label="LCD push cooldown (ms)" help="Minimum delay between 2 USB sends. 0 = none." value={settings?.lcdMinPushMs ?? 200} min={0} max={10000} step={50} accent={accent} onChange={v => update({ lcdMinPushMs: v })}/>
         <div>
           <div style={{ fontSize: 12, color: '#888', fontWeight: 600, marginBottom: 4 }}>Décimales affichées</div>
           <div style={{ fontSize: 10, color: '#3a3a3a', marginBottom: 7 }}>0 = 45° · 1 = 45.3° · 2 = 45.32°</div>
@@ -155,7 +155,7 @@ export function Settings() {
       <Divider/>
 
       {/* GPU */}
-      <SectionHeader icon={<IChip/>} title="Source GPU" description="Sélectionne le GPU dont la température est affichée. Sur les systèmes avec iGPU + dGPU, choisis le bon."/>
+      <SectionHeader icon={<IChip/>} title="GPU source" description="Select the GPU whose temperature is displayed. On systems with iGPU + dGPU, choose the correct one."/>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {/* Auto */}
         <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#0d0d0d', border: `1px solid ${!settings?.gpuSource ? `${accent}44` : '#1e1e1e'}`, borderRadius: 8, cursor: 'pointer', transition: 'all 140ms' }}>
@@ -176,7 +176,7 @@ export function Settings() {
               <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#3a3a3a', marginTop: 2 }}>{g.pci}</div>
             </div>
             <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: g.discrete ? `${accent}18` : '#1a1a1a', color: g.discrete ? accent : '#484848', whiteSpace: 'nowrap' }}>
-              {g.discrete ? 'Dédié' : 'iGPU'}
+              {g.discrete ? 'Dedicated' : 'iGPU'}
             </span>
           </label>
         ))}
@@ -185,7 +185,7 @@ export function Settings() {
       <Divider/>
 
       {/* AIO */}
-      <SectionHeader icon={<IDroplet/>} title="Watercooling AIO" description="Seul le NZXT Kraken Elite V2 est testé. Les autres modèles sont en attente de support matériel."/>
+      <SectionHeader icon={<IDroplet/>} title="Watercooling AIO" description="Only the NZXT Kraken Elite V2 is tested. Other models are pending hardware support."/>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {brands.map(brand => (
           <div key={brand}>
@@ -209,7 +209,7 @@ export function Settings() {
                           fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4, letterSpacing: '0.5px',
                           background: supported ? '#00e87a18' : '#1a1a1a',
                           color: supported ? '#00e87a' : '#3a3a3a',
-                        }}>{supported ? 'Supporté' : 'Brouillon'}</span>
+                        }}>{supported ? 'Supported' : 'Draft'}</span>
                         {active && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: `${accent}18`, color: accent }}>Actif</span>}
                       </div>
                       <div style={{ fontSize: 10, color: '#3a3a3a' }}>Écran {d.lcd}{d.note ? ` — ${d.note}` : ''}</div>
@@ -220,7 +220,7 @@ export function Settings() {
                         background: active ? `${accent}22` : accent,
                         color: active ? accent : '#fff',
                         opacity: active ? 0.7 : 1, transition: 'all 140ms',
-                      }}>{active ? 'Actif' : 'Sélectionner'}</button>
+                      }}>{active ? 'Active' : 'Select'}</button>
                     ) : (
                       <button onClick={() => requestAccess(d.id, d.name, d.brand)} style={{
                         padding: '5px 14px', borderRadius: 6, border: '1px solid #222',
@@ -229,7 +229,7 @@ export function Settings() {
                       }}
                       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#3a3a3a'; (e.currentTarget as HTMLButtonElement).style.color = '#888' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#222'; (e.currentTarget as HTMLButtonElement).style.color = '#484848' }}
-                      >{requested.has(d.id) ? '✓ Demande envoyée' : "Demander l'accès"}</button>
+                      >{requested.has(d.id) ? '✓ Request sent' : "Request support"}</button>
                     )}
                   </div>
                 )
@@ -244,7 +244,7 @@ export function Settings() {
       {/* Monitor section placeholder */}
       <SectionHeader icon={<IMonitor/>} title="Affichage"/>
       <div style={{ fontSize: 11, color: '#2e2e2e', fontFamily: 'JetBrains Mono, monospace', padding: '4px 0' }}>
-        Résolution LCD : 480 × 480 px · Interface : USB Direct · Firmware : Kraken Elite V2
+        LCD resolution: 480 × 480 px · Interface: USB Direct · Firmware: Kraken Elite V2
       </div>
     </div>
   )

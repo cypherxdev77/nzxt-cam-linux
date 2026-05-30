@@ -52,7 +52,7 @@ const initialState: AppState = {
   accent: '#9d4edd',
   compact: false,
   tempUnit: '°C',
-  deviceStatus: { connected: false, productName: 'Non détecté', pid: null, error: null, lcdControllable: false },
+  deviceStatus: { connected: false, productName: 'Not detected', pid: null, error: null, lcdControllable: false },
   temperatures: { cpu: 0, gpu: 0, liquid: 0, pumpRpm: 0 },
   currentMode: 'image',
   currentImagePath: null,

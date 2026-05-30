@@ -116,7 +116,7 @@ export function ElementInspector({ element, onChange, onRemove }: Props) {
   if (!element) {
     return (
       <div className="text-sm text-gray-600 p-4 text-center border border-dashed border-[#2a2a3e] rounded-xl">
-        Sélectionne un élément (poignée sur l'aperçu ou liste à gauche) pour l'éditer.
+        Select an element (handle on preview or list on the left) to edit it.
       </div>
     )
   }
@@ -140,7 +140,7 @@ export function ElementInspector({ element, onChange, onRemove }: Props) {
 
       {element.type === 'gauge' && (
         <>
-          <SelectField label="Métrique" value={element.metric} options={METRIC_OPTIONS} onChange={(v) => c({ metric: v })} />
+          <SelectField label="Metric" value={element.metric} options={METRIC_OPTIONS} onChange={(v) => c({ metric: v })} />
           <TextField label="Label" value={element.label} onChange={(v) => c({ label: v })} />
           <ToggleField label="Afficher label" value={element.showLabel} onChange={(v) => c({ showLabel: v })} />
           <ToggleField label="Afficher valeur" value={element.showValue} onChange={(v) => c({ showValue: v })} />
@@ -148,18 +148,18 @@ export function ElementInspector({ element, onChange, onRemove }: Props) {
           <NumberField label="Épaisseur" value={element.thickness} onChange={(v) => c({ thickness: v })} min={4} max={160} />
           <NumberField label="Taille valeur" value={element.valueSize} onChange={(v) => c({ valueSize: v })} min={8} max={128} />
           <NumberField label="Max (jauge pleine)" value={element.max} onChange={(v) => c({ max: v })} min={1} max={5000} />
-          <NumberField label="Angle départ" value={element.startAngle} onChange={(v) => c({ startAngle: v })} min={0} max={360} />
+          <NumberField label="Start angle" value={element.startAngle} onChange={(v) => c({ startAngle: v })} min={0} max={360} />
           <NumberField label="Balayage" value={element.sweep} onChange={(v) => c({ sweep: v })} min={30} max={360} />
           <NumberField label="Seuil alerte" value={element.warnAt} onChange={(v) => c({ warnAt: v })} min={0} max={5000} />
-          <ColorField label="Couleur" value={element.color} onChange={(v) => c({ color: v })} />
-          <ColorField label="Couleur alerte" value={element.warnColor} onChange={(v) => c({ warnColor: v })} />
-          <ColorField label="Couleur fond" value={element.trackColor} onChange={(v) => c({ trackColor: v })} />
+          <ColorField label="Color" value={element.color} onChange={(v) => c({ color: v })} />
+          <ColorField label="Alert color" value={element.warnColor} onChange={(v) => c({ warnColor: v })} />
+          <ColorField label="Track color" value={element.trackColor} onChange={(v) => c({ trackColor: v })} />
         </>
       )}
 
       {element.type === 'bar' && (
         <>
-          <SelectField label="Métrique" value={element.metric} options={METRIC_OPTIONS} onChange={(v) => c({ metric: v })} />
+          <SelectField label="Metric" value={element.metric} options={METRIC_OPTIONS} onChange={(v) => c({ metric: v })} />
           <TextField label="Label" value={element.label} onChange={(v) => c({ label: v })} />
           <ToggleField label="Afficher label" value={element.showLabel} onChange={(v) => c({ showLabel: v })} />
           <ToggleField label="Afficher valeur" value={element.showValue} onChange={(v) => c({ showValue: v })} />
@@ -168,9 +168,9 @@ export function ElementInspector({ element, onChange, onRemove }: Props) {
           <NumberField label="Taille texte" value={element.valueSize} onChange={(v) => c({ valueSize: v })} min={8} max={128} />
           <NumberField label="Max (barre pleine)" value={element.max} onChange={(v) => c({ max: v })} min={1} max={5000} />
           <NumberField label="Seuil alerte" value={element.warnAt} onChange={(v) => c({ warnAt: v })} min={0} max={5000} />
-          <ColorField label="Couleur" value={element.color} onChange={(v) => c({ color: v })} />
-          <ColorField label="Couleur alerte" value={element.warnColor} onChange={(v) => c({ warnColor: v })} />
-          <ColorField label="Couleur fond" value={element.trackColor} onChange={(v) => c({ trackColor: v })} />
+          <ColorField label="Color" value={element.color} onChange={(v) => c({ color: v })} />
+          <ColorField label="Alert color" value={element.warnColor} onChange={(v) => c({ warnColor: v })} />
+          <ColorField label="Track color" value={element.trackColor} onChange={(v) => c({ trackColor: v })} />
         </>
       )}
 
@@ -191,12 +191,12 @@ export function ElementInspector({ element, onChange, onRemove }: Props) {
             value={element.align}
             options={[
               { value: 'left', label: 'Gauche' },
-              { value: 'center', label: 'Centré' },
+              { value: 'center', label: 'Centered' },
               { value: 'right', label: 'Droite' }
             ]}
             onChange={(v) => c({ align: v })}
           />
-          <ColorField label="Couleur" value={element.color} onChange={(v) => c({ color: v })} />
+          <ColorField label="Color" value={element.color} onChange={(v) => c({ color: v })} />
         </>
       )}
     </div>

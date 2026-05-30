@@ -5,8 +5,8 @@ import { api, Profile, ProfileLcd, ProfileSummary } from '../lib/api'
 const LCD_TYPE_LABEL: Record<string, string> = {
   image:        'Image',
   gif:          'GIF',
-  temperatures: 'Températures',
-  none:         'LCD inchangé',
+  temperatures: 'Temperatures',
+  none:         'LCD unchanged',
 }
 
 const IPlus = () => (
@@ -145,7 +145,7 @@ export function ProfileManager() {
     }
     const result = await api.saveProfile(profile)
     if (!result.success) setError(result.error ?? 'Erreur inconnue')
-    else { flash(`"${name}" sauvegardé`); refresh() }
+    else { flash(`"${name}" saved`); refresh() }
   }
 
   const handleApply = async (name: string) => {
@@ -154,7 +154,7 @@ export function ProfileManager() {
     try {
       const result = await api.applyProfile(name)
       if (!result.success) setError(result.error ?? 'Erreur')
-      else flash(`"${name}" appliqué`)
+      else flash(`"${name}" applied`)
     } finally { setApplying(null) }
   }
 
@@ -162,7 +162,7 @@ export function ProfileManager() {
     setError(null)
     const result = await api.deleteProfile(name)
     if (!result.success) setError(result.error ?? 'Erreur')
-    else { flash(`"${name}" supprimé`); refresh() }
+    else { flash(`"${name}" deleted`); refresh() }
   }
 
   const autoStartCmd = (name: string) => `exec-once = ~/.local/bin/nzxtcam --profile ${name}`
@@ -237,7 +237,7 @@ export function ProfileManager() {
         <div>
           <div style={{ fontSize: 10, color: '#484848', textTransform: 'uppercase', letterSpacing: '0.9px', fontWeight: 700, marginBottom: 8 }}>Autostart — Hyprland</div>
           <div style={{ fontSize: 11, color: '#2e2e2e', marginBottom: 10, lineHeight: 1.6 }}>
-            Copie dans <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#484848' }}>~/.config/hypr/hyprland.conf</span> pour lancer un profil au démarrage :
+            Add to <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#484848' }}>~/.config/hypr/hyprland.conf</span> to launch a profile at startup :
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {profiles.map(p => (

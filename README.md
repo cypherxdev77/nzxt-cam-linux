@@ -1,19 +1,19 @@
 # nzxt-cam-linux
 
-Contrôleur LCD & RGB pour le **NZXT Kraken Elite V2** sous Linux.
-Alternative native à NZXT CAM (Windows) — construit avec Tauri 2 + Rust.
+LCD & RGB controller for the **NZXT Kraken Elite V2** on Linux.
+Native alternative to NZXT CAM (Windows only) — built with Tauri 2 + Rust.
 
-## Fonctionnalités
+## Features
 
-- Affichage LCD : image, GIF, températures en temps réel
-- Contrôle RGB Ring AIO + ventilateurs
-- Monitoring CPU / GPU / liquide / pompe
-- Profils sauvegardables avec autostart Hyprland
-- Interface sombre native, zéro cloud
+- LCD display: image, GIF, real-time temperatures
+- RGB Ring AIO + fan control
+- CPU / GPU / liquid / pump monitoring
+- Saveable profiles with Hyprland autostart support
+- Native dark UI, zero cloud, zero telemetry
 
 ## Installation
 
-### Prérequis
+### Prerequisites
 
 ```bash
 # Arch / Manjaro
@@ -23,7 +23,7 @@ sudo pacman -S --needed rust nodejs npm webkit2gtk-4.1 base-devel
 sudo apt install -y cargo nodejs npm libwebkit2gtk-4.1-dev build-essential
 ```
 
-### Installer l'app
+### Install
 
 ```bash
 git clone https://github.com/cypherxdev77/nzxt-cam-linux.git
@@ -31,163 +31,164 @@ cd nzxt-cam-linux
 ./install.sh
 ```
 
-Le script compile le binaire (~1-2 min), installe l'app dans `~/.local/bin/`,
-ajoute l'entrée dans ton dashboard et configure l'accès USB sans sudo.
+The script compiles the binary (~1-2 min), installs the app to `~/.local/bin/`,
+adds a desktop entry, and configures USB access without sudo.
 
-Lance ensuite depuis ton dashboard en cherchant **nzxt-cam-linux**, ou via :
+Then launch from your app launcher by searching **nzxt-cam-linux**, or via:
 
 ```bash
 nzxtcam-v1
 ```
 
-### Désinstaller
+### Uninstall
 
 ```bash
 ./uninstall.sh
 ```
 
-## Devices supportés
+## Supported devices
 
-| Modèle | PID | Statut |
-|--------|-----|--------|
-| NZXT Kraken Elite V2 (2024) | `0x3012` | Testé |
-| NZXT Kraken Elite 360 | `0x3009` | Non testé |
-| NZXT Kraken Elite RGB 360 | `0x300e` | Non testé |
-| NZXT Kraken 2023 Elite | `0x300c` | Non testé |
+| Model | PID | Status |
+|-------|-----|--------|
+| NZXT Kraken Elite V2 (2024) | `0x3012` | Tested |
+| NZXT Kraken Elite 360 | `0x3009` | Untested |
+| NZXT Kraken Elite RGB 360 | `0x300e` | Untested |
+| NZXT Kraken 2023 Elite | `0x300c` | Untested |
 
-Pour demander le support d'un autre modèle, ouvre une issue ou utilise le bouton « Demander l'accès » dans Paramètres.
+To request support for another model, open an issue or use the "Request support" button in Settings.
 
-## Structure
+## Project structure
 
 ```
 nzxt-cam-linux/
-├── src/                       # Frontend React + TypeScript
-│   ├── App.tsx                # Layout principal
-│   ├── components/            # Composants UI
-│   │   └── display/           # Éditeur de scène WYSIWYG
+├── src/                       # React + TypeScript frontend
+│   ├── App.tsx                # Root layout
+│   ├── components/            # UI components
+│   │   └── display/           # WYSIWYG scene editor
 │   ├── hooks/                 # useDevice / useTemperatures / useIPC
-│   ├── lib/api.ts             # Wrapper invoke() / listen()
-│   ├── shared/                # Types partagés (DisplayConfig, presets)
+│   ├── i18n/                  # EN / FR translations + LangContext
+│   ├── lib/api.ts             # invoke() / listen() wrappers
+│   ├── shared/                # Shared types (DisplayConfig, presets)
 │   └── styles/
-└── src-tauri/                 # Backend Rust
+└── src-tauri/                 # Rust backend
     ├── Cargo.toml
     ├── tauri.conf.json
-    ├── capabilities/          # Permissions Tauri 2
+    ├── capabilities/          # Tauri 2 permissions
     └── src/
         ├── main.rs / lib.rs   # Entry point + bootstrap
-        ├── commands.rs        # #[tauri::command]s exposées au frontend
+        ├── commands.rs        # #[tauri::command]s exposed to frontend
         ├── usb/
         │   ├── driver.rs      # KrakenDriver (nusb)
-        │   └── protocol.rs    # Constantes + helpers du protocole
+        │   └── protocol.rs    # Protocol constants + helpers
         ├── render/
-        │   ├── scene.rs       # Rendu tiny-skia (gauges, bars, text)
-        │   └── fonts.rs       # ab_glyph + chargement police
+        │   ├── scene.rs       # tiny-skia rendering (gauges, bars, text)
+        │   └── fonts.rs       # ab_glyph + font loading
         ├── sensors/
         │   ├── cpu.rs         # /sys/class/hwmon — k10temp, coretemp...
         │   └── gpu.rs         # /sys/class/hwmon — amdgpu, nvidia, i915
         ├── image_io.rs        # image + gif crates (resize, RGBA)
-        ├── config.rs          # Persistance ~/.config/nzxt-cam-linux/
-        └── types.rs           # Types partagés (serde rename_all=camelCase)
+        ├── config.rs          # Persistence ~/.config/nzxt-cam-linux/
+        └── types.rs           # Shared types (serde rename_all=camelCase)
 ```
 
-## Détails techniques
+## Technical details
 
-### Protocole USB
+### USB protocol
 
-Le firmware du Kraken Elite attend une séquence très précise :
+The Kraken Elite firmware expects a very specific sequence:
 
 1. FW query (interrupt OUT) → ACK FW version (interrupt IN)
 2. Init `[0x36, 0x03]` → ACK `[0x37, 0x03]`
-3. Switch en mode liquide (libère le bucket actif)
-4. Boucle de delete buckets jusqu'à code=1
-5. Setup bucket avec dimensions
+3. Switch to liquid mode (releases active bucket)
+4. Delete bucket loop until code=1
+5. Setup bucket with dimensions
 6. Start transfer
-7. **Bulk write du header** (12 octets MAGIC + 8 octets bulk_info)
-8. **Bulk write des données image** — *séparé* de l'étape 7 (sinon corruption silencieuse)
+7. **Bulk write header** (12 bytes MAGIC + 8 bytes bulk_info)
+8. **Bulk write image data** — *separate* from step 7 (otherwise silent corruption)
 9. End transfer
-10. Switch sur le bucket activé
+10. Switch to activated bucket
 
-### Pourquoi nusb plutôt que rusb ?
+### Why nusb instead of rusb?
 
-- **Zéro dépendance système** (rusb nécessite libusb installé)
-- Async natif (intégration Tokio)
-- Backend Linux direct (ioctls sur `/dev/bus/usb`)
-- Mêmes permissions udev que libusb
+- **Zero system dependency** (rusb requires libusb installed)
+- Native async (Tokio integration)
+- Direct Linux backend (ioctls on `/dev/bus/usb`)
+- Same udev permissions as libusb
 
-### Rendu LCD
+### LCD rendering
 
-`tiny-skia` rasterise une scène 640×640 en RGBA :
-- Jauges : annular sector via test pixel (angle + radius)
-- Barres : rectangles arrondis pleins
-- Texte : `ab_glyph` charge une TTF (Inter / DejaVu) et compose les glyphes avec blending
+`tiny-skia` rasterizes a 640×640 RGBA scene:
+- Gauges: annular sector via pixel test (angle + radius)
+- Bars: filled rounded rectangles
+- Text: `ab_glyph` loads a TTF (Inter / DejaVu) and composites glyphs with blending
 
-L'alpha est forcé à `0x00` dans le buffer final (exigence firmware).
+Alpha is forced to `0x00` in the final buffer (firmware requirement).
 
-### Diff-skip anti-clignotement
+### Anti-flicker diff-skip
 
-À chaque tick du mode Températures, une *clé visuelle* est calculée AVANT le rendu :
+On every tick of Temperature mode, a *visual key* is computed BEFORE rendering:
 
 ```
 "{configVersion}|{cpu:.d}|{gpu:.d}|{liquid:.d}|{pump}"
 ```
 
-Si elle ne change pas → pas de rendu, pas de push USB, pas de `switchBucket`. Résultat : zéro saut d'animation sur le LCD physique tant que la valeur affichée n'évolue pas à la précision configurée.
+If it hasn't changed → no render, no USB push, no `switchBucket`. Result: zero animation jump on the physical LCD as long as the displayed value doesn't change at the configured precision.
 
-## Dépannage
+## Troubleshooting
 
-**« Aucun Kraken Elite trouvé »**
-→ Vérifier que la règle udev est installée et que l'utilisateur est dans le groupe `plugdev`. Tester avec `lsusb | grep 1e71`.
+**"No Kraken Elite found"**
+→ Check that the udev rule is installed and the user is in the `plugdev` group. Test with `lsusb | grep 1e71`.
 
-**Le device n'est pas détecté après un crash de l'app**
-→ Le kernel driver USB est resté détaché. Réattacher :
+**Device not detected after app crash**
+→ The USB kernel driver remained detached. Reattach it:
 ```bash
 python3 -c "import usb.core; d=usb.core.find(idVendor=0x1e71,idProduct=0x3012); d.attach_kernel_driver(1)"
 ```
 
-**Aucune police trouvée**
-→ Installer une police TTF :
+**No font found**
+→ Install a TTF font:
 ```bash
-sudo pacman -S ttf-inter      # Arch (préféré)
-sudo pacman -S ttf-dejavu     # ou
+sudo pacman -S ttf-inter      # Arch (preferred)
+sudo pacman -S ttf-dejavu     # or
 ```
 
-## Limitations connues
+## Known limitations
 
-| Limitation | Détail |
+| Limitation | Detail |
 |---|---|
-| **Température liquide** | Affichée à 30 °C fixe — lecture USB du Kraken pas encore implémentée |
-| **RPM pompe** | Affiché à 0 — même raison |
-| **Preset « nzxt-cam »** | Non porté depuis la version Electron (utilisait un canvas Chromium pour le gradient conique) |
-| **Un seul device à la fois** | Pas de support multi-AIO simultané |
-| **Drag-drop fichier** | Remplacé par un dialog natif (la webview Tauri bloque les `file://` drag-drop) |
+| **Liquid temperature** | Fixed at 30 °C — USB read from Kraken not yet implemented |
+| **Pump RPM** | Displayed as 0 — same reason |
+| **"nzxt-cam" preset** | Not ported from the Electron version (used a Chromium canvas for the conic gradient) |
+| **Single device** | No simultaneous multi-AIO support |
+| **File drag-drop** | Replaced by a native dialog (Tauri webview blocks `file://` drag-drop) |
 
-## Soutenir le projet
+## Support the project
 
-nzxt-cam-linux est gratuit et open-source, et le restera toujours.
+nzxt-cam-linux is free and open-source, and will always remain so.
 
-Si tu aimes le projet, la meilleure façon de soutenir c'est de **le partager** à tes amis et de **suivre le compte GitHub**.
+If you like the project, the best way to support it is to **share it** and **star the repo**.
 
-Si tu veux aller plus loin, un don crypto est toujours apprécié :
+Crypto donations are also welcome:
 
-| Réseau | Adresse |
-|--------|---------|
+| Network | Address |
+|---------|---------|
 | **Bitcoin** | `bc1qxz8ctth9h296dz95v43kerhrlajfqgnt4j9umc` |
 | **ERC-20** (ETH, USDT, USDC…) | `0xdB6B57BE02dbb5Baa7f1013207ACEdB2E70b879c` |
 | **Solana** | `7nA4q7dDXujLe6SbBX6hx91dMkwTMKcttCX1SNP1bc2v` |
 
-Merci — chaque étoile et chaque partage compte autant qu'un don.
+Every star and share counts as much as a donation.
 
-## Licence
+## License
 
-MIT — usage libre, modification et redistribution autorisées.
+MIT — free to use, modify and redistribute.
 
-## Crédits
+## Credits
 
-- [liquidctl](https://github.com/liquidctl/liquidctl) — rétro-ingénierie du protocole NZXT Kraken
+- [liquidctl](https://github.com/liquidctl/liquidctl) — reverse engineering of the NZXT Kraken protocol
 - [Tauri](https://tauri.app) — framework
-- [tiny-skia](https://github.com/RazrFalcon/tiny-skia) — rasterizer 2D pur Rust
-- [nusb](https://github.com/kevinmehall/nusb) — USB async pur Rust
+- [tiny-skia](https://github.com/RazrFalcon/tiny-skia) — pure Rust 2D rasterizer
+- [nusb](https://github.com/kevinmehall/nusb) — pure Rust async USB
 
 ---
 
-Développé par **Cypher** pour la communauté Linux 🐧
+Built by **Cypher** for the Linux community 🐧

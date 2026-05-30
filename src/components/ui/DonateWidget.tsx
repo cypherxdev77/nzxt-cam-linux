@@ -70,7 +70,7 @@ function DonatePanel({ onClose }: { onClose: () => void }) {
       </div>
       <div style={{ padding: '12px 18px', background: '#0d0d0d', borderBottom: '1px solid #1a1a1a' }}>
         <p style={{ fontSize: 11, color: '#555', lineHeight: 1.6 }}>
-          Ce projet est open source et développé bénévolement. Si vous l'appréciez et souhaitez soutenir son développement, toute contribution est la bienvenue. 🙏
+          This project is open source and developed for free. If you appreciate it and want to support its development, any contribution is welcome. 🙏
         </p>
       </div>
       <div style={{ padding: '12px 14px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>

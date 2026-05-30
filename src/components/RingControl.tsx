@@ -28,14 +28,14 @@ const MODES: ModeDef[] = [
   { id: 'fading',       label: 'Dégradé',       hasColor: false, hasMultiColor: true,  hasSpeed: true,  description: 'Transition multi-couleurs' },
   { id: 'spectrumWave', label: 'Spectre',        hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Arc-en-ciel automatique' },
   { id: 'rainbowFlow',  label: 'Rainbow Flow',  hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Arc-en-ciel en mouvement' },
-  { id: 'rainbowPulse', label: 'Rainbow Pulse', hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Arc-en-ciel pulsé' },
+  { id: 'rainbowPulse', label: 'Rainbow Pulse', hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Pulsing rainbow' },
   { id: 'superRainbow', label: 'Super Rainbow', hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Arc-en-ciel ultra' },
   { id: 'marquee',      label: 'Marquee',       hasColor: true,  hasMultiColor: false, hasSpeed: true,  description: 'Couleur tournante' },
   { id: 'staryNight',   label: 'Étoiles',       hasColor: true,  hasMultiColor: false, hasSpeed: true,  description: 'Scintillement' },
 ]
 
 const SPEEDS: { id: RingSpeed; label: string }[] = [
-  { id: 'slowest', label: 'Très lent' },
+  { id: 'slowest', label: 'Slowest' },
   { id: 'slower',  label: 'Lent' },
   { id: 'normal',  label: 'Normal' },
   { id: 'faster',  label: 'Rapide' },
@@ -141,7 +141,7 @@ export function RingControl() {
         </p>
         {channel === 'ch01' && (
           <p className="text-xs text-yellow-500/80 mt-1">
-            Essayez ⭕ Ring AIO pour le ring blanc autour de l'écran LCD
+            Try ⭕ Ring AIO for the white ring around the LCD screen
           </p>
         )}
       </div>
@@ -171,7 +171,7 @@ export function RingControl() {
       {/* Single color */}
       {modeDef.hasColor && (
         <div>
-          <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest">Couleur</p>
+          <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest">Color</p>
           <div className="flex flex-wrap gap-2 mb-3">
             {SWATCHES.map((hex) => (
               <button
@@ -210,7 +210,7 @@ export function RingControl() {
       {modeDef.hasMultiColor && (
         <div>
           <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest">
-            Couleurs ({multiColors.length}/8)
+            Colors ({multiColors.length}/8)
           </p>
           <div className="flex flex-col gap-2">
             {multiColors.map((hex, i) => (

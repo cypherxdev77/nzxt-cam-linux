@@ -60,7 +60,7 @@ export function PreviewCanvas({ config, previewUrl, selectedId, onSelect, onMove
         {previewUrl ? (
           <img
             src={previewUrl}
-            alt="aperçu"
+            alt="preview"
             draggable={false}
             className="absolute inset-0 w-full h-full pointer-events-none"
           />
@@ -96,7 +96,7 @@ export function PreviewCanvas({ config, previewUrl, selectedId, onSelect, onMove
           )
         })}
       </div>
-      <p className="text-xs text-gray-600">Glisse les poignées pour repositionner • {LCD_SIZE}×{LCD_SIZE}</p>
+      <p className="text-xs text-gray-600">Drag handles to reposition • {LCD_SIZE}×{LCD_SIZE}</p>
     </div>
   )
 }

@@ -113,7 +113,7 @@ export function DisplayEditor() {
   }, [config])
 
   if (!config) {
-    return <div className="text-gray-500 text-sm p-8">Chargement de l'éditeur…</div>
+    return <div className="text-gray-500 text-sm p-8">Loading editor…</div>
   }
 
   const selected = config.elements.find((el) => el.id === selectedId) ?? null
@@ -122,7 +122,7 @@ export function DisplayEditor() {
     <div className="flex gap-5 h-full overflow-hidden">
       <div className="w-56 shrink-0 flex flex-col gap-4 overflow-y-auto pr-1">
         <div>
-          <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest">Modèles</p>
+          <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest">Templates</p>
           <div className="grid grid-cols-2 gap-2">
             {PRESETS.map((p) => (
               <button
@@ -138,7 +138,7 @@ export function DisplayEditor() {
         </div>
 
         <div>
-          <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest">Éléments</p>
+          <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest">Elements</p>
           <div className="flex flex-col gap-1">
             {config.elements.map((el) => (
               <button
@@ -192,17 +192,17 @@ export function DisplayEditor() {
           className="px-6 py-2.5 rounded-xl bg-[#00d4ff] text-[#0a0a0f] font-semibold text-sm hover:bg-[#33ddff] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,212,255,0.3)]"
         >
           {applyState === 'applying' ? 'Envoi…'
-            : applyState === 'done' ? '✓ Appliqué sur le LCD'
-            : applyState === 'error' ? '✕ Erreur — réessayer'
-            : 'Appliquer sur le LCD'}
+            : applyState === 'done' ? '✓ Applied to LCD'
+            : applyState === 'error' ? '✕ Error — retry'
+            : 'Apply to LCD'}
         </button>
         {!state.deviceStatus.lcdControllable && (
-          <p className="text-xs text-amber-500">LCD non disponible — vérifie la connexion du device</p>
+          <p className="text-xs text-amber-500">LCD not available — check device connection</p>
         )}
       </div>
 
       <div className="w-80 shrink-0 overflow-y-auto bg-[#0d0d14] border border-[#1e1e2e] rounded-xl p-4">
-        <p className="text-xs text-gray-500 mb-3 uppercase tracking-widest">Propriétés</p>
+        <p className="text-xs text-gray-500 mb-3 uppercase tracking-widest">Properties</p>
         <ElementInspector
           element={selected}
           onChange={(patch) => selectedId && updateElement(selectedId, patch)}

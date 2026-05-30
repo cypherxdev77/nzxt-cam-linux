@@ -1,4 +1,5 @@
 import { AppProvider, useApp } from './context/AppContext'
+import { LangProvider } from './i18n/LangContext'
 import { AppSidebar } from './components/AppSidebar'
 import { AppHeader } from './components/AppHeader'
 import { DonateWidget } from './components/ui/DonateWidget'
@@ -39,8 +40,10 @@ function MainApp() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <MainApp />
-    </AppProvider>
+    <LangProvider>
+      <AppProvider>
+        <MainApp />
+      </AppProvider>
+    </LangProvider>
   )
 }

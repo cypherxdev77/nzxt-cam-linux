@@ -226,7 +226,7 @@ export function TempDisplayConfig() {
               transition: 'all 140ms',
             }}>
               <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              {status === 'applying' ? 'Envoi…' : status === 'done' ? 'Appliqué ✓' : status === 'error' ? 'Erreur' : 'Appliquer sur le LCD'}
+              {status === 'applying' ? 'Sending…' : status === 'done' ? 'Applied ✓' : status === 'error' ? 'Error' : 'Apply to LCD'}
             </button>
 
             <button onClick={() => {}} style={{

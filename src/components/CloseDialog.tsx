@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { listen } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { useApp } from '../context/AppContext'
+import { useLanguage } from '../i18n/LangContext'
 
 export function CloseDialog() {
   const { state } = useApp()
   const accent = state.accent
+  const { t } = useLanguage()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function CloseDialog() {
             Fermer la fenêtre ?
           </div>
           <div style={{ fontSize: 12, color: '#555', lineHeight: 1.6 }}>
-            L'app peut continuer en arrière-plan et maintenir le contrôle RGB + LCD.
+            {t('close_sub')}
           </div>
         </div>
 
@@ -51,7 +53,7 @@ export function CloseDialog() {
             background: accent, color: '#fff', fontSize: 13, fontWeight: 700,
             cursor: 'pointer', boxShadow: `0 0 18px ${accent}44`, transition: 'all 140ms',
           }}>
-            Garder en arrière-plan
+            {t('close_bg')}
           </button>
           <button onClick={quitApp} style={{
             padding: '10px 0', borderRadius: 9, border: '1px solid #252525',
@@ -61,7 +63,7 @@ export function CloseDialog() {
           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ff4757'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#ff475733' }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#555'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#252525' }}
           >
-            Quitter complètement
+            {t('close_quit')}
           </button>
         </div>
       </div>
