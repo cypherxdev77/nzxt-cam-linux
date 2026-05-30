@@ -88,7 +88,7 @@ function DonatePanel({ onClose }: { onClose: () => void }) {
               {address !== '—' && (
                 <div style={{ display: 'flex', gap: 5 }}>
                   <button onClick={() => copyAddress(id, address)} style={{ background: copied === id ? color + '22' : 'transparent', border: `1px solid ${copied === id ? color + '55' : '#2a2a2a'}`, borderRadius: 5, color: copied === id ? color : '#444', cursor: 'pointer', padding: '4px 7px', display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, transition: 'all 160ms' }}>
-                    {copied === id ? <><ICheck/> Copié</> : <><ICopy/> Copier</>}
+                    {copied === id ? <><ICheck/> Copied</> : <><ICopy/> Copy</>}
                   </button>
                   <button onClick={() => setQrTarget(CRYPTO.find(c => c.id === id)!)} style={{ background: 'transparent', border: '1px solid #2a2a2a', borderRadius: 5, color: '#444', cursor: 'pointer', padding: '4px 7px', display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, transition: 'all 160ms' }} title="QR Code">
                     <IQR/> QR

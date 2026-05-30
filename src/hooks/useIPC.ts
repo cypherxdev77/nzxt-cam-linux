@@ -9,7 +9,7 @@ export function useIPC() {
     dispatch({ type: 'SET_ERROR', payload: null })
     try {
       const result = await api.sendImage(path)
-      if (!result.success) dispatch({ type: 'SET_ERROR', payload: result.error ?? 'Erreur inconnue' })
+      if (!result.success) dispatch({ type: 'SET_ERROR', payload: result.error ?? 'Unknown error' })
       else dispatch({ type: 'SET_IMAGE_PATH', payload: path })
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
@@ -21,7 +21,7 @@ export function useIPC() {
     dispatch({ type: 'SET_ERROR', payload: null })
     try {
       const result = await api.sendGif(path)
-      if (!result.success) dispatch({ type: 'SET_ERROR', payload: result.error ?? 'Erreur inconnue' })
+      if (!result.success) dispatch({ type: 'SET_ERROR', payload: result.error ?? 'Unknown error' })
       else dispatch({ type: 'SET_GIF_PATH', payload: path })
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
@@ -33,7 +33,7 @@ export function useIPC() {
     dispatch({ type: 'SET_ERROR', payload: null })
     try {
       const result = await api.startTempMode()
-      if (!result.success) dispatch({ type: 'SET_ERROR', payload: result.error ?? 'Erreur inconnue' })
+      if (!result.success) dispatch({ type: 'SET_ERROR', payload: result.error ?? 'Unknown error' })
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }

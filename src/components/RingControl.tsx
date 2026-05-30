@@ -21,15 +21,15 @@ type ModeDef = {
 }
 
 const MODES: ModeDef[] = [
-  { id: 'off',          label: 'Éteint',       hasColor: false, hasMultiColor: false, hasSpeed: false, description: 'LED éteintes' },
+  { id: 'off',          label: 'Off',         hasColor: false, hasMultiColor: false, hasSpeed: false, description: 'LEDs off' },
   { id: 'fixed',        label: 'Fixe',          hasColor: true,  hasMultiColor: false, hasSpeed: false, description: 'Couleur statique' },
   { id: 'breathing',    label: 'Respiration',   hasColor: true,  hasMultiColor: false, hasSpeed: true,  description: 'Fondu doux' },
   { id: 'pulse',        label: 'Pulse',         hasColor: true,  hasMultiColor: false, hasSpeed: true,  description: 'Flash rapide' },
-  { id: 'fading',       label: 'Dégradé',       hasColor: false, hasMultiColor: true,  hasSpeed: true,  description: 'Transition multi-couleurs' },
-  { id: 'spectrumWave', label: 'Spectre',        hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Arc-en-ciel automatique' },
-  { id: 'rainbowFlow',  label: 'Rainbow Flow',  hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Arc-en-ciel en mouvement' },
+  { id: 'fading',       label: 'Fading',       hasColor: false, hasMultiColor: true,  hasSpeed: true,  description: 'Multi-color transition' },
+  { id: 'spectrumWave', label: 'Spectre',        hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Auto rainbow' },
+  { id: 'rainbowFlow',  label: 'Rainbow Flow',  hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Flowing rainbow' },
   { id: 'rainbowPulse', label: 'Rainbow Pulse', hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Pulsing rainbow' },
-  { id: 'superRainbow', label: 'Super Rainbow', hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Arc-en-ciel ultra' },
+  { id: 'superRainbow', label: 'Super Rainbow', hasColor: false, hasMultiColor: false, hasSpeed: true,  description: 'Super rainbow' },
   { id: 'marquee',      label: 'Marquee',       hasColor: true,  hasMultiColor: false, hasSpeed: true,  description: 'Couleur tournante' },
   { id: 'staryNight',   label: 'Étoiles',       hasColor: true,  hasMultiColor: false, hasSpeed: true,  description: 'Scintillement' },
 ]
@@ -50,9 +50,9 @@ type ChannelDef = {
 }
 
 const CHANNELS: ChannelDef[] = [
-  { id: 'ch01', icon: '⭕', label: 'Ring AIO',     hint: 'Canal 0x01 — ring autour du LCD' },
-  { id: 'ch02', icon: '🌀', label: 'Ventilateurs', hint: 'Canal 0x02 — fans / accessoires externes' },
-  { id: 'ch07', icon: '🔆', label: 'Tout',          hint: 'Canal 0x07 — tous les canaux en même temps' },
+  { id: 'ch01', icon: '⭕', label: 'Ring AIO',     hint: 'Channel 0x01 — ring around the LCD' },
+  { id: 'ch02', icon: '🌀', label: 'Ventilateurs', hint: 'Channel 0x02 — fans / external accessories' },
+  { id: 'ch07', icon: '🔆', label: 'Tout',          hint: 'Channel 0x07 — all channels at once' },
 ]
 
 const SWATCHES = [
@@ -99,7 +99,7 @@ export function RingControl() {
     setError(null)
     try {
       const result = await api.sendRing(buildRingMode(), channel)
-      if (!result.success) setError(result.error ?? 'Erreur inconnue')
+      if (!result.success) setError(result.error ?? 'Unknown error')
       else setLastSent({ channel, mode: selectedMode })
     } catch (e: unknown) {
       setError(String(e))
@@ -273,7 +273,7 @@ export function RingControl() {
           disabled={!connected || sending}
           className="px-6 py-3 rounded-xl text-sm font-semibold transition-all bg-[#00d4ff] text-[#0a0a0f] hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,212,255,0.3)]"
         >
-          {sending ? 'Envoi...' : '💡 Appliquer'}
+          {sending ? 'Sending...' : '💡 Apply'}
         </button>
         {lastSent && !error && (
           <span className="text-xs text-green-400">
@@ -289,7 +289,7 @@ export function RingControl() {
       )}
 
       {!connected && (
-        <p className="text-yellow-500 text-xs">Device non connecté</p>
+        <p className="text-yellow-500 text-xs">Device not connected</p>
       )}
     </div>
   )

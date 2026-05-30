@@ -147,7 +147,7 @@ export function TempDisplayConfig() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Presets row */}
         <Card style={{ padding: '12px 16px' }} accent={accent}>
-          <div style={{ fontSize: 10, color: '#484848', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10, fontWeight: 700 }}>Modèles</div>
+          <div style={{ fontSize: 10, color: '#484848', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10, fontWeight: 700 }}>Templates</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {PRESETS.map(p => (
               <button key={p.id} onClick={() => loadPreset(p.id)} title={p.description} style={{
@@ -242,7 +242,7 @@ export function TempDisplayConfig() {
               Rotate display
             </button>
 
-            {!connected && <span style={{ fontSize: 11, color: '#ffb347' }}>Device non connecté</span>}
+            {!connected && <span style={{ fontSize: 11, color: '#ffb347' }}>Device not connected</span>}
           </div>
         </Card>
       </div>

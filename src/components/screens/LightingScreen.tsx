@@ -227,10 +227,10 @@ function RingDeviceRow({ name, sub, isFan, accent }: {
             boxShadow: connected ? `0 0 12px ${accent}44` : 'none', transition: 'all 140ms',
           }}>
             <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            {sending ? 'Envoi…' : 'Appliquer'}
+            {sending ? 'Sending…' : 'Apply'}
           </button>
           {lastApplied && <span style={{ fontSize: 11, color: '#00e87a' }}>Appliqué</span>}
-          {!connected && <span style={{ fontSize: 11, color: '#ffb347' }}>Device non connecté</span>}
+          {!connected && <span style={{ fontSize: 11, color: '#ffb347' }}>Device not connected</span>}
         </div>
       </div>
     </div>

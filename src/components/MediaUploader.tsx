@@ -85,7 +85,7 @@ export function MediaUploader() {
       <span style={{ color: '#484848' }}><IUpload/></span>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: '#c0c0c0', marginBottom: 5 }}>
-          {state.isLoading ? 'Envoi en cours…' : 'Cliquer pour choisir un fichier'}
+          {state.isLoading ? 'Uploading…' : 'Click to select a file'}
         </div>
         <div style={{ fontSize: 11, color: '#484848' }}>{hint}</div>
         {!controllable && (

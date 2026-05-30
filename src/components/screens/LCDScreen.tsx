@@ -167,7 +167,7 @@ export function LCDScreen() {
                 {applying ? 'Sending…' : applied ? 'Applied to LCD' : 'Apply to LCD'}
               </button>
               {applied && <span style={{ fontSize: 11, color: '#00e87a' }}>✓</span>}
-              {!deviceStatus.connected && <span style={{ fontSize: 11, color: '#ffb347' }}>Device non connecté</span>}
+              {!deviceStatus.connected && <span style={{ fontSize: 11, color: '#ffb347' }}>Device not connected</span>}
             </div>
           )}
         </div>

@@ -144,7 +144,7 @@ export function ProfileManager() {
       displayConfig: includeLcd && state.currentMode === 'temperatures' ? state.displayConfig ?? undefined : undefined,
     }
     const result = await api.saveProfile(profile)
-    if (!result.success) setError(result.error ?? 'Erreur inconnue')
+    if (!result.success) setError(result.error ?? 'Unknown error')
     else { flash(`"${name}" saved`); refresh() }
   }
 
@@ -153,7 +153,7 @@ export function ProfileManager() {
     setApplying(name); setError(null)
     try {
       const result = await api.applyProfile(name)
-      if (!result.success) setError(result.error ?? 'Erreur')
+      if (!result.success) setError(result.error ?? 'Error')
       else flash(`"${name}" applied`)
     } finally { setApplying(null) }
   }
@@ -161,7 +161,7 @@ export function ProfileManager() {
   const handleDelete = async (name: string) => {
     setError(null)
     const result = await api.deleteProfile(name)
-    if (!result.success) setError(result.error ?? 'Erreur')
+    if (!result.success) setError(result.error ?? 'Error')
     else { flash(`"${name}" deleted`); refresh() }
   }
 
@@ -179,7 +179,7 @@ export function ProfileManager() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ fontSize: 10, color: '#484848', textTransform: 'uppercase', letterSpacing: '0.9px', fontWeight: 700 }}>Profils sauvegardés</div>
+          <div style={{ fontSize: 10, color: '#484848', textTransform: 'uppercase', letterSpacing: '0.9px', fontWeight: 700 }}>Saved profiles</div>
           <div style={{ fontSize: 11, color: '#2e2e2e', marginTop: 4 }}>Sauvegarde ta configuration LCD + Ring en un clic</div>
         </div>
         <button onClick={() => setShowSaveDialog(true)} style={{
@@ -217,7 +217,7 @@ export function ProfileManager() {
                 fontSize: 11, fontWeight: 700, cursor: connected ? 'pointer' : 'not-allowed',
                 opacity: !connected ? 0.4 : 1, transition: 'all 130ms',
               }}>
-                <IPlay/>{applying === p.name ? 'Envoi…' : 'Appliquer'}
+                <IPlay/>{applying === p.name ? 'Sending…' : 'Apply'}
               </button>
               <button onClick={() => handleDelete(p.name)} style={{
                 width: 30, height: 30, borderRadius: 6, border: '1px solid #1e1e1e',
@@ -254,7 +254,7 @@ export function ProfileManager() {
                 <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#484848', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {autoStartCmd(p.name)}
                 </span>
-                {copied === p.name && <span style={{ fontSize: 10, color: accent, fontWeight: 700, flexShrink: 0 }}>Copié</span>}
+                {copied === p.name && <span style={{ fontSize: 10, color: accent, fontWeight: 700, flexShrink: 0 }}>Copied</span>}
               </div>
             ))}
           </div>

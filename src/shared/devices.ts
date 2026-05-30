@@ -28,7 +28,7 @@ export const AIO_DEVICES: AioDevice[] = [
     pid: 0x3012,
     lcd: '640×640',
     status: 'supported',
-    note: 'Testé — GIF, image, couleur et mode Températures fonctionnels.'
+    note: 'Tested — GIF, image, color and Temperatures mode working.'
   },
   {
     id: 'nzxt-kraken-2024-plus',

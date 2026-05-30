@@ -132,7 +132,7 @@ export function Settings() {
       {/* Cadence */}
       <SectionHeader icon={<IClock/>} title="Polling & precision" description="Controls the sensor read frequency and LCD refresh rate."/>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <NumField label="Lecture capteurs (ms)" help="Intervalle entre 2 lectures CPU/GPU." value={settings?.pollIntervalMs ?? 1000} min={100} max={60000} step={50} accent={accent} onChange={v => update({ pollIntervalMs: v })}/>
+        <NumField label="Sensor read (ms)" help="Interval between CPU/GPU reads." value={settings?.pollIntervalMs ?? 1000} min={100} max={60000} step={50} accent={accent} onChange={v => update({ pollIntervalMs: v })}/>
         <NumField label="LCD render (ms)" help="Scene render frequency. USB push only happens when the image changes." value={settings?.lcdPollMs ?? 500} min={50} max={60000} step={50} accent={accent} onChange={v => update({ lcdPollMs: v })}/>
         <NumField label="LCD push cooldown (ms)" help="Minimum delay between 2 USB sends. 0 = none." value={settings?.lcdMinPushMs ?? 200} min={0} max={10000} step={50} accent={accent} onChange={v => update({ lcdMinPushMs: v })}/>
         <div>

@@ -191,7 +191,7 @@ export function DisplayEditor() {
           disabled={applyState === 'applying' || !state.deviceStatus.lcdControllable}
           className="px-6 py-2.5 rounded-xl bg-[#00d4ff] text-[#0a0a0f] font-semibold text-sm hover:bg-[#33ddff] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,212,255,0.3)]"
         >
-          {applyState === 'applying' ? 'Envoi…'
+          {applyState === 'applying' ? 'Sending…'
             : applyState === 'done' ? '✓ Applied to LCD'
             : applyState === 'error' ? '✕ Error — retry'
             : 'Apply to LCD'}
